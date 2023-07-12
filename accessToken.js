@@ -1,9 +1,9 @@
 var axios = require('axios');
 var config = require('./config');
+var fs = require('fs');
 
 function getAccessToken() {
     if (tokenStillValid()) {
-        console.log('Reusing token: ' + config.accessToken);
         return config.accessToken;
     }
     
@@ -16,7 +16,7 @@ function getAccessToken() {
             let validUntil = getValidUntil(response.data.expires_in);
             let accessToken = {id: response.data.access_token, expiration: validUntil};
             
-            updateConfig(config.refreshToken, accessToken, validUntil);
+            updateConfig(config.refreshToken, accessToken.id, validUntil);
             return accessToken;
         })
         .catch(error => {
@@ -33,7 +33,6 @@ function createOriginalTokens() {
     return axios.post(fullUrl)
         .then(response => {
             console.log(response.data);
-            // console.log(response.data.refresh_token);
             updateConfig(response.data.refresh_token, response.data.access_token, getValidUntil(response.data.expires_in));
         })
         .catch(error => {
@@ -43,11 +42,10 @@ function createOriginalTokens() {
 }
 
 function updateConfig(refreshToken, accessToken, authTokenExpiration) {
-    let configSetup = `module.exports = {\n\tcode: '${config.code}',\n\trefreshToken: '${refreshToken}',\n\taccessToken: '${accessToken}',\n\tauthTokenExpiration: ${authTokenExpiration},\n\tclientID: '${config.clientID}',\n\tclientSecret: '${config.clientSecret}',\n\tscope: '${config.scope}',\n\torgID: '${config.orgID}'};`;
+    let configSetup = `module.exports = {\n\tcode: '${config.code}',\n\trefreshToken: '${refreshToken}',\n\taccessToken: '${accessToken}',\n\tauthTokenExpiration: ${authTokenExpiration},\n\tclientID: '${config.clientID}',\n\tclientSecret: '${config.clientSecret}',\n\tscope: '${config.scope}',\n\torgID: '${config.orgID}'\n};`;
     let configFname = 'config.js';
     fs.writeFile(configFname, configSetup, function (err) {
         if (err) throw err;
-        console.log('Saved!');
     });
 }
 

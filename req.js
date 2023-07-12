@@ -1,7 +1,6 @@
 var axios = require('axios');
 var tokenFuncs = require('./accessToken');
 var config = require('./config');
-var fs = require('fs');
 
 var headers = {Authorization:0, orgId:0};
 
@@ -57,4 +56,3 @@ function main() {
 }
 
 // main();
-readFile('config.js');
