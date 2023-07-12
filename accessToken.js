@@ -1,15 +1,22 @@
-const axios = require('axios');
-const config = require('./config');
+var axios = require('axios');
+var config = require('./config');
 
 function getAccessToken() {
+    if (tokenStillValid()) {
+        console.log('Reusing token: ' + config.accessToken);
+        return config.accessToken;
+    }
+    
     let url = 'https://accounts.zoho.com/oauth/v2/token';
     let grantType = 'refresh_token';
     let fullUrl = `${url}?refresh_token=${config.refreshToken}&client_id=${config.clientID}&client_secret=${config.clientSecret}&scope=${config.scope}&grant_type=${grantType}`;
 
     return axios.post(fullUrl)
         .then(response => {
-            let accessToken = response.data.access_token;
-            // console.log(accessToken);
+            let validUntil = getValidUntil(response.data.expires_in);
+            let accessToken = {id: response.data.access_token, expiration: validUntil};
+            
+            updateConfig(config.refreshToken, accessToken, validUntil);
             return accessToken;
         })
         .catch(error => {
@@ -26,7 +33,8 @@ function createOriginalTokens() {
     return axios.post(fullUrl)
         .then(response => {
             console.log(response.data);
-            console.log(response.data.refresh_token);
+            // console.log(response.data.refresh_token);
+            updateConfig(response.data.refresh_token, response.data.access_token, getValidUntil(response.data.expires_in));
         })
         .catch(error => {
           console.error(error);
@@ -34,7 +42,28 @@ function createOriginalTokens() {
         });
 }
 
+function updateConfig(refreshToken, accessToken, authTokenExpiration) {
+    let configSetup = `module.exports = {\n\tcode: '${config.code}',\n\trefreshToken: '${refreshToken}',\n\taccessToken: '${accessToken}',\n\tauthTokenExpiration: ${authTokenExpiration},\n\tclientID: '${config.clientID}',\n\tclientSecret: '${config.clientSecret}',\n\tscope: '${config.scope}',\n\torgID: '${config.orgID}'};`;
+    let configFname = 'config.js';
+    fs.writeFile(configFname, configSetup, function (err) {
+        if (err) throw err;
+        console.log('Saved!');
+    });
+}
+
+function getValidUntil(expires_in) {
+    let timeToExp = expires_in * 1000;
+    let validUntil = Date.now() + timeToExp;
+    return validUntil;
+}
+
+function tokenStillValid() {
+    return config.authTokenExpiration > Date.now();
+}
+
 module.exports = {
     getAccessToken,
     createOriginalTokens
 };
+
+getAccessToken();
