@@ -1,10 +1,10 @@
 module.exports = {
-	code: '1000.8eab57e355e6695bd38b40523cfe055b.2f5ea093195f7f2482502a1964861f5b',
-	refreshToken: '1000.8ec07a33a22542fcb13d1d75ac46553b.1076c7e1a2caf1d41381e7d3cbbd989f',
-	accessToken: '1000.9de8a04d32296f8dc5cc89ee389fbacd.e79b3600d64fb271cb5f4750a1044c5a',
-	authTokenExpiration: 1689166363973,
+	code: '1000.edb9548a0cc9bc2173bb671df3c26c85.f003c605fbd8c72a4d100320fff20472',
+	refreshToken: '1000.7704f757838b8b0930d6f1cbfbc7b757.f30b48a9fdc3eb0519ef9f53aa3ede97',
+	accessToken: '1000.9f040a4c8d6d66d3841824833e3110b6.c6220ae33700e690c80ca2c348e509bb',
+	authTokenExpiration: 1689240080023,
 	clientID: '1000.2WRU29VLNMXK3WYZVLMLAHGFRZGT5D',
 	clientSecret: 'e63f27e480e4052386a2b494c2af0652fa0aa66295',
-	scope: 'Desk.tickets.ALL,Desk.basic.READ,Desk.settings.READ,Desk.search.READ',
+	scope: 'Desk.tickets.ALL,Desk.tickets.UPDATE,Desk.basic.READ,Desk.settings.READ,Desk.search.READ',
 	orgID: '807931464'
 };

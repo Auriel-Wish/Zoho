@@ -4,7 +4,9 @@ var fs = require('fs');
 
 function getAccessToken() {
     if (tokenStillValid()) {
-        return config.accessToken;
+        return new Promise(resolve => {
+            resolve(config.accessToken);
+        });
     }
     
     let url = 'https://accounts.zoho.com/oauth/v2/token';
@@ -17,7 +19,7 @@ function getAccessToken() {
             let accessToken = {id: response.data.access_token, expiration: validUntil};
             
             updateConfig(config.refreshToken, accessToken.id, validUntil);
-            return accessToken;
+            return accessToken.id;
         })
         .catch(error => {
           console.error(error);
@@ -63,5 +65,3 @@ module.exports = {
     getAccessToken,
     createOriginalTokens
 };
-
-getAccessToken();
