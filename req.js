@@ -123,37 +123,57 @@ function placeTicket(ticket) {
 
 function createPriorityQueue(agents) {
     for (count = 0; count < (Object.keys(agents).length + Object.keys(agentsDummy).length); count++) {
-        console.log(`\nSelect the ${count} agent:`);
-        for (const [id, agent] of Object.entries(agents)) {
-            console.log(`\t${agent.shortID}: ${agent.name}`)
-        }
-
-        let nextNum = readlineSync.question();
-        nextNum = parseInt(nextNum);
-        priorityQueue.push(nextNum);
-
-        console.log(`\nMaximum total tickets for this agent (Or, type 'e' to exclude this agent): `);
-        let maxTickets = readlineSync.question();
-        let maxWaiting;
-        if (maxTickets != 'e') {
-            maxTickets = parseInt(maxTickets);
-
-            console.log(`\nMaximum "Waiting On Us" tickets for this agent: `);
-            maxWaiting = readlineSync.question();
-            maxWaiting = parseInt(maxWaiting);
-        }
-        else {
-            maxTickets = 0;
-            maxWaiting = 0;
-        }
-
-        for (const [id, agent] of Object.entries(agents)) {
-            if (agent.shortID == nextNum) {
-                agent.maxTickets = maxTickets;
-                agent.maxWaiting = maxWaiting;
-                agentsDummy[id] = agent;
-                delete agents[id];
+        let inputValid = false;
+        while (!inputValid) {
+            console.log(`\nSelect the ${count} agent:`);
+            for (const [id, agent] of Object.entries(agents)) {
+                console.log(`\t${agent.shortID}: ${agent.name}`)
             }
+
+            let nextNum = readlineSync.question();
+            nextNum = parseInt(nextNum);
+            if (nextNum < 0 || nextNum >= Object.keys(agents).length || isNaN(nextNum)) {
+                console.log('Invalid input: ' + nextNum);
+                continue;
+            }
+            
+            priorityQueue.push(nextNum);
+
+            console.log(`\nMaximum total tickets for this agent (Or, type 'e' to exclude this agent): `);
+            let maxTickets = readlineSync.question();
+            let maxWaiting;
+
+            if (isNaN(parseInt(maxTickets)) && maxTickets != 'e') {
+                console.log('Invalid input: ' + maxTickets);
+                continue;
+            }
+
+            if (maxTickets != 'e') {
+                maxTickets = parseInt(maxTickets);
+
+                console.log(`\nMaximum "Waiting On Us" tickets for this agent: `);
+                maxWaiting = readlineSync.question();
+                if (isNaN(parseInt(maxWaiting))) {
+                    console.log('Invalid input: ' + maxWaiting);
+                    continue;
+                }
+                maxWaiting = parseInt(maxWaiting);
+            }
+            else {
+                maxTickets = 0;
+                maxWaiting = 0;
+            }
+
+            for (const [id, agent] of Object.entries(agents)) {
+                if (agent.shortID == nextNum) {
+                    agent.maxTickets = maxTickets;
+                    agent.maxWaiting = maxWaiting;
+                    agentsDummy[id] = agent;
+                    delete agents[id];
+                }
+            }
+
+            inputValid = true;
         }
     }
 
