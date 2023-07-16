@@ -1,117 +1,163 @@
 var axios = require('axios');
+const readlineSync = require('readline-sync');
 var tokenFuncs = require('./accessToken');
 var config = require('./config');
 
-var headers = {Authorization:0, orgId:0};
+var headers = { Authorization:0, orgId:0 };
 
 // If original Tokens are needed again
 // tokenFuncs.createOriginalTokens();
 
+// test dept
+var departmentId = '846378000000705029';
+
+// modix dept
+// var departmentId = '846378000000006907';
+
 var assigneeIDs = [];
 var agents = {};
+var agentsDummy = {};
 var unassignedTickets = [];
-var priorityQueue = [3, 2, 1, 5, 4, 0, 6];
+var priorityQueue = [];
+var allTickets = [];
 
-
-function main() {
-    tokenFuncs.getAccessToken()
-    // Get all the tickets    
-    .then(accessToken => {
-            // Modix department ID
-            // let departmentId = '846378000000006907';
-
-            // test department ID
-            let departmentId = '846378000000705029';
-
-            let urlTickets = `https://desk.zoho.com/api/v1/tickets?departmentId=${departmentId}&limit=100&assignee=Unassigned`;
+async function main() {
+    await tokenFuncs.getAccessToken()
+        .then(accessToken => {
             headers = {
                 Authorization: `Zoho-oauthtoken ${accessToken}`,
                 orgId: config.orgID,
             };
 
-            return axios.get(urlTickets, { headers });
-        })
-        .then(response => {
-            if (response.data.data.length == 0) {
-                process.exit(0); 
-            }
-            for (let i = 0; i < response.data.data.length; i++) {                
-                assigneeIDs.push(response.data.data[i].assigneeId);
-                if (assigneeIDs[i] == null && response.data.data[i].statusType == 'Open') {
-                    unassignedTickets.push(response.data.data[i]);
-                    // console.log(response.data.data[i]);
-                }
-            }
-        })
-        // Get all the agents
-        .then(() => {
             let urlAgents = 'https://desk.zoho.com/api/v1/agents';
             return axios.get(urlAgents, { headers });
         })
         .then(response => {
             for (let i = 0; i < response.data.data.length; i++) {
-                let newAgent = {name: response.data.data[i].name, shortID:i, numTickets: 0, maxTickets: 10 - i};
+                let newAgent = {name: response.data.data[i].name, shortID:i, numTickets: 0, numWaiting: 0, maxTickets: 0, maxWaiting: 0};
                 agents[response.data.data[i].id] = newAgent;
             }
-            // console.log(agents);
+
+            agents = createPriorityQueue(agents);
         })
         .catch(error => {
-            console.error('ERROR:\n' + error.response.data.errorCode + '\n' + error.response.data.message);
+            console.error(error);
         })
         // Count the number of tickets per agent
-        .then(() => {
-            for (let i = 0; i < assigneeIDs.length; i++) {
-                if (assigneeIDs[i] in agents) {
-                    (agents[assigneeIDs[i]]).numTickets++;
+        .then(async () => {
+            await getAllTickets(0);
+            for (let i = 0; i < allTickets.length; i++) {
+                if (allTickets[i].statusType == "Open") {
+                    if (allTickets[i].assigneeId == null) {
+                        unassignedTickets.push(allTickets[i]);
+                    }
+                    else {
+                        agents[allTickets[i].assigneeId].numTickets++;
+                        if (allTickets[i].status.toLowerCase() == 'waiting on us') {
+                            (agents[allTickets[i].assigneeId]).numWaiting++;
+                        }
+                    }
                 }
             }
+
+            console.log('Unassigned Tickets: ' + unassignedTickets.length);
         })
         .then(() => {
+            // console.log(agents);
             for (let i = 0; i < unassignedTickets.length; i++) {
                 placeTicket(unassignedTickets[i]);
             }
+        });
+}
+
+function getAllTickets(from) {
+    let urlTickets = `https://desk.zoho.com/api/v1/tickets?departmentId=${departmentId}&limit=100&from=${from}`;
+    return axios.get(urlTickets, { headers })
+        .then(async (response) => {
+            if (response.data != '') {
+                allTickets = allTickets.concat(response.data.data);
+                await getAllTickets(from + 100);
+            }
         })
-    
-        // Keep looping until all tickets have been assigned. This is necessary
-        // because the API can only fetch 100 tickets at a time.
-    // main();
 }
 
 function placeTicket(ticket) {    
-    for (const [id, agent] of Object.entries(agents)) {
-        if (agent.shortID == priorityQueue[0]) {
-            if (agent.numTickets < agent.maxTickets) {
-                console.log(`Assigining ticket to ${agent.name}: ${id}`);
-                
-                // assign ticket
-                let ticketData = {
-                    assigneeId: id
-                };
+    let ticketAllocated = false;
+    
+    while (priorityQueue.length > 0 && !ticketAllocated) {
+        for (const [id, agent] of Object.entries(agents)) {
+            if (agent.shortID == priorityQueue[0]) {
+                console.log(agent)
+                if (agent.numTickets < agent.maxTickets && agent.numWaiting < agent.maxWaiting) {
+                    console.log(`Assigning ticket to ${agent.name}`);
+                    
+                    // assign ticket
+                    let ticketData = {
+                        assigneeId: id
+                    };
 
-                let subject = ticket.subject;
-                console.log(`Subject: ${subject}\n`);
-                if (subject != null) {
+                    let subject = ticket.subject;
+                    console.log(`Subject: ${subject}\n`);
+
                     updateTicketUrl = `https://desk.zoho.com/api/v1/tickets/${ticket.id}`;
                     axios.patch(updateTicketUrl, ticketData, { headers })
-                        .then(response => {
-                            // console.log(response.data.assigneeId);
-                        })
+                        .then(() => {})
                         .catch(error => {
                             console.error('ERROR:\n' + error.response.data.errorCode + '\n' + error.response.data.message);
                         });
+
+                    agent.numTickets++;
+                    if (ticket.status.toLowerCase() == 'waiting on us') {
+                        agent.numWaiting++;
+                    }
+                    ticketAllocated = true;
                 }
-            }
-            else {
-                priorityQueue.shift();
-                if (priorityQueue.length > 0) {
-                    // placeTicket(ticket);
+                else {
+                    priorityQueue.shift();
+                    console.log(priorityQueue);
                 }
             }
         }
     }
 }
 
-main();
+function createPriorityQueue(agents) {
+    for (count = 0; count < (Object.keys(agents).length + Object.keys(agentsDummy).length); count++) {
+        console.log(`\nSelect the ${count} agent:`);
+        for (const [id, agent] of Object.entries(agents)) {
+            console.log(`\t${agent.shortID}: ${agent.name}`)
+        }
 
-// total < 85 && waiting on us > 25
-// option to exclude person from tickets
+        let nextNum = readlineSync.question();
+        nextNum = parseInt(nextNum);
+        priorityQueue.push(nextNum);
+
+        console.log(`\nMaximum total tickets for this agent (Or, type 'e' to exclude this agent): `);
+        let maxTickets = readlineSync.question();
+        let maxWaiting;
+        if (maxTickets != 'e') {
+            maxTickets = parseInt(maxTickets);
+
+            console.log(`\nMaximum "Waiting On Us" tickets for this agent: `);
+            maxWaiting = readlineSync.question();
+            maxWaiting = parseInt(maxWaiting);
+        }
+        else {
+            maxTickets = 0;
+            maxWaiting = 0;
+        }
+
+        for (const [id, agent] of Object.entries(agents)) {
+            if (agent.shortID == nextNum) {
+                agent.maxTickets = maxTickets;
+                agent.maxWaiting = maxWaiting;
+                agentsDummy[id] = agent;
+                delete agents[id];
+            }
+        }
+    }
+
+    return agentsDummy;
+}
+
+main();
