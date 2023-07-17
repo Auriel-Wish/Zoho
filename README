@@ -9,18 +9,6 @@ Files:
     config.js - contains configuration information
 
 Documentation:
-    * Do not change the formatting of the Excel sheet. Changing the style also won't
-        save so it won't hurt but it will waste your time.
-    * Adding an agent:
-        ~ Set Total Tickets Max (column D) and Waiting on Us Tickets Max (column E)
-            to all values of 0
-        ~ Run the program - it will automatically add in the new agent to the sheet
-        ~ Then set the numbers to the actual desired values and rerun
-    * Choosing the department:
-        ~ Type in the name of the department (as written in the Departments sheet)
-            into cell J1 (next to where it says department)
-        ~ I would make this a dropdown but apparently that also gets erased
-            (similar to styling)
     * Setting the agent order (what order they receive tickets)
         ~ In Order (by ID) (column C), write the order of the agent IDs (which
             can be found in column B). The top ID will receive tickets first,
@@ -29,9 +17,40 @@ Documentation:
     * Setting the maximum tickets per agent
         ~ Use column D to set the total maximum tickets for the given agent
         ~ Use column E to set the Waiting on Us tickets for the given agent
+    * Adding an agent:
+        ~ Set Total Tickets Max (column D) and Waiting on Us Tickets Max (column E)
+            to all values of 0
+        ~ Run the program - it will automatically add in the new agent to the sheet
+        ~ Then set the numbers to the actual desired values and rerun
     * You should only be changing columns C, D, E, and cell J1
         ~ Column F gets updated when the program is run - it shows how many tickets
             each agent has after they have been delegated
+    * Choosing the department:
+        ~ Type in the name of the department (as written in the Departments sheet)
+            into cell J1 (next to where it says department)
+        ~ I would make this a dropdown but apparently that also gets erased
+            (similar to styling)
+    * Adding a department
+        ~ Go to the main page on Zoho
+        ~ Click the gear icon in the top right (Setup)
+        ~ Click "Departments" in the "General" category
+        ~ Click on the desired department
+        ~ Copy the numbers at the end of the link
+        ~ Make a new entry in the Departments sheet in the Excel sheet - write the
+            department name and paste the ID
+    * Errors
+        ~ If there are errors, it should display them in the console. If you
+            get an error, ask Auriel - don't try and fix it unless you know
+            what you are doing
+    * Access tokens
+        ~ In general, the program should deal with access tokens on its own
+        ~ If the refresh token expires, a manual process is required. If this occurs
+            (which it may never), ask Auriel about it
+
+Other Notes:
+    * Do not change the formatting of the Excel sheet. Changing the style also won't
+        save so it won't hurt but it will waste your time.
+    * All of these files should be in the same folder
     * This code is not efficient, especially in dealing with searching through
         and updating values regarding the agents. If Modix grows to a huge size,
         the program may slow down (though most likely it won't make much of a
