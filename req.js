@@ -137,8 +137,6 @@ function createPriorityQueue(agents) {
                 continue;
             }
             
-            priorityQueue.push(nextNum);
-
             console.log(`\nMaximum total tickets for this agent (Or, type 'e' to exclude this agent): `);
             let maxTickets = readlineSync.question();
             let maxWaiting;
@@ -164,6 +162,8 @@ function createPriorityQueue(agents) {
                 maxWaiting = 0;
             }
 
+            priorityQueue.push(nextNum);
+
             for (const [id, agent] of Object.entries(agents)) {
                 if (agent.shortID == nextNum) {
                     agent.maxTickets = maxTickets;
@@ -174,6 +174,8 @@ function createPriorityQueue(agents) {
             }
 
             inputValid = true;
+
+            console.clear();
         }
     }
 
