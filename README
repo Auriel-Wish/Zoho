@@ -1,0 +1,15 @@
+Written by: Auriel Wish
+
+Purpose: Distribute Zoho support tickets based on number of tickets and types of
+    tickets assigned.
+
+Files:
+    main.js - contains the functionality of distributing the tickets
+    accessToken.js - contains code to gain access to Zoho Desk API
+    config.js - contains configuration information
+
+Notes:
+    1) This code is not efficient, especially in dealing with searching through
+        and updating values regarding the agents. If Modix grows to a huge size,
+        the program may slow down (though most likely it won't make much of a
+        difference).

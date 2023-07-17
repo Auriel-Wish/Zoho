@@ -1,5 +1,6 @@
 var axios = require('axios');
-const readlineSync = require('readline-sync');
+var readlineSync = require('readline-sync');
+var XLSX = require('xlsx');
 var tokenFuncs = require('./accessToken');
 var config = require('./config');
 
@@ -21,6 +22,11 @@ var unassignedTickets = [];
 var priorityQueue = [];
 var allTickets = [];
 
+var wbName = 'zoho.xlsx';
+var wb = XLSX.readFile(wbName);
+var sheetName = wb.SheetNames[0];
+var sheet = wb.Sheets[sheetName];
+
 async function main() {
     await tokenFuncs.getAccessToken()
         .then(accessToken => {
@@ -38,7 +44,7 @@ async function main() {
                 agents[response.data.data[i].id] = newAgent;
             }
 
-            agents = createPriorityQueue(agents);
+            createPriorityQueue(agents);
         })
         .catch(error => {
             console.error(error);
@@ -67,6 +73,8 @@ async function main() {
             for (let i = 0; i < unassignedTickets.length; i++) {
                 placeTicket(unassignedTickets[i]);
             }
+
+            sayNumTickets();
         });
 }
 
@@ -87,7 +95,6 @@ function placeTicket(ticket) {
     while (priorityQueue.length > 0 && !ticketAllocated) {
         for (const [id, agent] of Object.entries(agents)) {
             if (agent.shortID == priorityQueue[0]) {
-                console.log(agent)
                 if (agent.numTickets < agent.maxTickets && agent.numWaiting < agent.maxWaiting) {
                     console.log(`Assigning ticket to ${agent.name}`);
                     
@@ -99,12 +106,12 @@ function placeTicket(ticket) {
                     let subject = ticket.subject;
                     console.log(`Subject: ${subject}\n`);
 
-                    updateTicketUrl = `https://desk.zoho.com/api/v1/tickets/${ticket.id}`;
-                    axios.patch(updateTicketUrl, ticketData, { headers })
-                        .then(() => {})
-                        .catch(error => {
-                            console.error('ERROR:\n' + error.response.data.errorCode + '\n' + error.response.data.message);
-                        });
+                    // updateTicketUrl = `https://desk.zoho.com/api/v1/tickets/${ticket.id}`;
+                    // axios.patch(updateTicketUrl, ticketData, { headers })
+                    //     .then(() => {})
+                    //     .catch(error => {
+                    //         console.error('ERROR:\n' + error.response.data.errorCode + '\n' + error.response.data.message);
+                    //     });
 
                     agent.numTickets++;
                     if (ticket.status.toLowerCase() == 'waiting on us') {
@@ -114,72 +121,73 @@ function placeTicket(ticket) {
                 }
                 else {
                     priorityQueue.shift();
-                    console.log(priorityQueue);
                 }
             }
         }
     }
 }
 
-function createPriorityQueue(agents) {
-    for (count = 0; count < (Object.keys(agents).length + Object.keys(agentsDummy).length); count++) {
-        let inputValid = false;
-        while (!inputValid) {
-            console.log(`\nSelect the ${count} agent:`);
-            for (const [id, agent] of Object.entries(agents)) {
-                console.log(`\t${agent.shortID}: ${agent.name}`)
-            }
+function sayNumTickets() {
+    let data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    let currData;
+    let currID;
+    let newCell;
+    for (let i = 1; i < data.length; i++) {
+        currData = data[i];
+        currID = currData[1];
 
-            let nextNum = readlineSync.question();
-            nextNum = parseInt(nextNum);
-            if (nextNum < 0 || nextNum >= Object.keys(agents).length || isNaN(nextNum)) {
-                console.log('Invalid input: ' + nextNum);
-                continue;
-            }
-            
-            console.log(`\nMaximum total tickets for this agent (Or, type 'e' to exclude this agent): `);
-            let maxTickets = readlineSync.question();
-            let maxWaiting;
-
-            if (isNaN(parseInt(maxTickets)) && maxTickets != 'e') {
-                console.log('Invalid input: ' + maxTickets);
-                continue;
-            }
-
-            if (maxTickets != 'e') {
-                maxTickets = parseInt(maxTickets);
-
-                console.log(`\nMaximum "Waiting On Us" tickets for this agent: `);
-                maxWaiting = readlineSync.question();
-                if (isNaN(parseInt(maxWaiting))) {
-                    console.log('Invalid input: ' + maxWaiting);
-                    continue;
+        for (const [id, agent] of Object.entries(agents)) {
+            if (agent.shortID == currID) {
+                newCell = {
+                    t: 'n',
+                    v: agent.numTickets
                 }
-                maxWaiting = parseInt(maxWaiting);
+                sheet[`F${i + 1}`] = newCell;
             }
-            else {
-                maxTickets = 0;
-                maxWaiting = 0;
-            }
-
-            priorityQueue.push(nextNum);
-
-            for (const [id, agent] of Object.entries(agents)) {
-                if (agent.shortID == nextNum) {
-                    agent.maxTickets = maxTickets;
-                    agent.maxWaiting = maxWaiting;
-                    agentsDummy[id] = agent;
-                    delete agents[id];
-                }
-            }
-
-            inputValid = true;
-
-            console.clear();
         }
     }
 
-    return agentsDummy;
+    XLSX.writeFile(wb, wbName);
+}
+
+function createPriorityQueue() {
+    let x = 0;
+    let newCell;
+    Object.keys(agents).forEach(function(id, agent) {
+        newCell = {
+            t: 's',
+            v: agents[id].name
+        }
+        sheet[`A${x + 2}`] = newCell;
+        newCell = {
+            t: 'n',
+            v: agents[id].shortID
+        }
+        sheet[`B${x + 2}`] = newCell;
+        x++;
+    });
+    XLSX.writeFile(wb, wbName);
+
+    let data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    let currData;
+    let maxTickets;
+    let maxWaiting;
+    let currID;
+    for (let i = 1; i < data.length; i++) {
+        currData = data[i];
+        currID = currData[2];
+        maxTickets = currData[3];
+        maxWaiting = currData[4];
+
+        for (const [id, agent] of Object.entries(agents)) {
+            if (agent.shortID == currID) {
+                agent.maxTickets = maxTickets;
+                agent.maxWaiting = maxWaiting;
+            }
+        }
+
+        priorityQueue.push(currID);
+    }
 }
 
 main();
