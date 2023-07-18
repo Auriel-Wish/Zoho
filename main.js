@@ -12,9 +12,6 @@ var headers = { Authorization:0, orgId:0 };
 // test dept
 var departmentId;
 
-// modix dept
-// var departmentId = '846378000000006907';
-
 var assigneeIDs = [];
 var agents = {};
 var agentsDummy = {};
@@ -73,7 +70,7 @@ async function main() {
             await getAllTickets(0);
             for (let i = 0; i < allTickets.length; i++) {
                 // It only matters if it is open
-                if (allTickets[i].statusType == "Open") {
+                if (allTickets[i].statusType == "Open" || allTickets[i].statusType == "On Hold") {
                     // If the ticket is unnassigned, assign it later
                     // If it is assigned, document which agent is responsible for it
                     if (allTickets[i].assigneeId == null) {
