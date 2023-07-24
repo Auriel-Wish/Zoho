@@ -13,21 +13,23 @@ Documentation:
         ~ In Order (by ID) (column C), write the order of the agent IDs (which
             can be found in column B). The top ID will receive tickets first,
             and the bottom ID will receive tickets last.
+        ~ In Priority On/Off (Column D), write "t" if the agent should have priority
+            and "f" if the agent should have their tickets equally distributed with others.
         ~ All IDs must be used exactly once
     * Setting the maximum tickets per agent
         ~ Use column D to set the total maximum tickets for the given agent
         ~ Use column E to set the Waiting on Us tickets for the given agent
     * Adding an agent:
-        ~ Set Total Tickets Max (column D) and Waiting on Us Tickets Max (column E)
+        ~ Set Total Tickets Max (column E) and Waiting on Us Tickets Max (column F)
             to all values of 0
         ~ Run the program - it will automatically add in the new agent to the sheet
         ~ Then set the numbers to the actual desired values and rerun
-    * You should only be changing columns C, D, E, and cell J1
-        ~ Column F gets updated when the program is run - it shows how many tickets
+    * You should only be changing columns C, D, E, F and cell K1
+        ~ Column G gets updated when the program is run - it shows how many tickets
             each agent has after they have been delegated
     * Choosing the department:
         ~ Type in the name of the department (as written in the Departments sheet)
-            into cell J1 (next to where it says department)
+            into cell K1 (next to where it says department)
         ~ I would make this a dropdown but apparently that also gets erased
             (similar to styling)
     * Adding a department
