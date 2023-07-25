@@ -46,8 +46,14 @@ Documentation:
             what you are doing
     * Access tokens
         ~ In general, the program should deal with access tokens on its own
-        ~ If the refresh token expires, a manual process is required. If this occurs
-            (which it may never), ask Auriel about it
+        ~ If the refresh token expires, a manual process is required:
+            1. Go to https://api-console.zoho.com/
+            2. Click on 'Self Client'
+            3. Under 'Scope', write 'Desk.tickets.ALL,Desk.tickets.UPDATE,Desk.basic.READ,Desk.settings.READ,Desk.search.READ'
+            4. Click 'Create'
+            5. Once you get the code, copy and paste it into 'code' in the 'config.js' file
+            6. Go to line 10 of 'main.js' and uncomment it - the line says 'tokenFuncs.createOriginalTokens();'
+            7. Run 'node main.js'
 
 Other Notes:
     * Do not change the formatting of the Excel sheet. Changing the style also won't

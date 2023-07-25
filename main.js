@@ -171,11 +171,11 @@ function assignTicket(id, ticket, agent) {
 
     // Assign the ticket
     updateTicketUrl = `https://desk.zoho.com/api/v1/tickets/${ticket.id}`;
-    axios.patch(updateTicketUrl, ticketData, { headers })
-        .then(() => {})
-        .catch(error => {
-            console.error(error);
-        });
+    // axios.patch(updateTicketUrl, ticketData, { headers })
+    //     .then(() => {})
+    //     .catch(error => {
+    //         console.error(error);
+    //     });
 
     // Document that the ticket has been assigned
     agent.numTickets++;
