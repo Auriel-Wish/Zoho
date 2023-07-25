@@ -54,6 +54,12 @@ Documentation:
             5. Once you get the code, copy and paste it into 'code' in the 'config.js' file
             6. Go to line 10 of 'main.js' and uncomment it - the line says 'tokenFuncs.createOriginalTokens();'
             7. Run 'node main.js'
+    * Using on a different computer
+        ~ Download the files from Github - https://github.com/Auriel-Wish/Zoho
+        ~ Download nodejs (from online)
+        ~ In terminal, navigate to the folder of the files
+        ~ Type 'npm install' (the packages might already be installed but this will ensure it)
+        ~ Run 'node main.js'
 
 Other Notes:
     * Do not change the formatting of the Excel sheet. Changing the style also won't
